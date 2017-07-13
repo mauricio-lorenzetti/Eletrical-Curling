@@ -17,18 +17,32 @@ class GameViewController: UIViewController {
         
         if let view = self.view as! SKView? {
             // Load the SKScene from 'GameScene.sks'
+            view.showsFPS = true
+            view.showsNodeCount = true
+            view.showsPhysics = true
+            view.showsFields = true
+            view.ignoresSiblingOrder = true
+            
             if let scene = SKScene(fileNamed: "GameScene") {
                 // Set the scale mode to scale to fit the window
                 scene.scaleMode = .aspectFill
+                
+                if let hudScene = GameScene(fileNamed:"HUD") {
+                    if let hudNode = hudScene.childNode(withName: "hud") {
+                        // transporta o hud da Hud.sks para o GameScene.sks
+                        hudScene.removeFromParent()
+                        hudNode.removeFromParent()
+                        
+                        scene.addChild(hudNode)
+                        
+                        hudNode.zPosition = 10
+                    }
+                }
                 
                 // Present the scene
                 view.presentScene(scene)
             }
             
-            view.ignoresSiblingOrder = true
-            
-            view.showsFPS = true
-            view.showsNodeCount = true
         }
     }
 
