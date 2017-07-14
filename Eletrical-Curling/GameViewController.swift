@@ -27,7 +27,7 @@ class GameViewController: UIViewController {
                 // Set the scale mode to scale to fit the window
                 scene.scaleMode = .aspectFill
                 
-                if let hudScene = GameScene(fileNamed:"HUD") {
+                if let hudScene = GameScene(fileNamed:"Hudsss") {
                     if let hudNode = hudScene.childNode(withName: "hud") {
                         // transporta o hud da Hud.sks para o GameScene.sks
                         hudScene.removeFromParent()
