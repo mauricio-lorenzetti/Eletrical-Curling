@@ -12,6 +12,8 @@ let initialCharge       :   CGFloat = 0.4
 let initialFieldCharge  :   Float = 0.0
 let defaulFieldCharge   :   Float = 0.2
 
+let chargeTextureScale  :   CGFloat = 0.5
+
 let TargetCategoryName = "target"
 let FieldCategoryName = "field"
 let FieldOriginCategoryName = "fieldOrigin"
@@ -40,8 +42,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var whichCharge : String = ""
     
+    var gameOverLabel : SKLabelNode!
+    var gameOverTextLabel : SKLabelNode!
+    
     override func didMove(to view: SKView) {
         super.didMove(to: view)
+        
+        gameOverLabel = childNode(withName: "gameOverLabel") as! SKLabelNode
+        gameOverTextLabel = childNode(withName: "gameOverTextLabel") as! SKLabelNode
+        gameOverLabel.isHidden = true
+        gameOverTextLabel.isHidden = true
         
         let borderBody = SKPhysicsBody(edgeLoopFrom: self.frame)
         borderBody.friction = 0
@@ -65,9 +75,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.gravity = CGVector(dx: 0.0, dy: 0.0)
         physicsWorld.contactDelegate = self
         
-        let hud = childNode(withName: "hud")
+        //let hud = childNode(withName: "hud")
         
-        let target = childNode(withName: TargetCategoryName) as! SKNode
+        let target = childNode(withName: TargetCategoryName)!
         target.physicsBody!.categoryBitMask = TargetCategory
         target.physicsBody!.contactTestBitMask = ChargeCategory
         target.physicsBody!.collisionBitMask = ChargeCategory
@@ -88,19 +98,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         if firstBody.categoryBitMask == ChargeCategory && secondBody.categoryBitMask == TargetCategory {
-            print("Hit target.")
+            pausePhysicsSimulation()
+            gameOverLabel.isHidden = false
+            gameOverTextLabel.isHidden = false
         }
-        
     }
     
     func createProbeCharge(charge: Bool) -> SKSpriteNode {
-        let newChargeNode = SKSpriteNode(imageNamed: PositiveChargeCategoryName)
+        let newChargeNode = SKSpriteNode(imageNamed:
+            charge ? PositiveChargeCategoryName : NegativeChargeCategoryName)
         newChargeNode.position = CGPoint(x: 150, y: 160)
         charges.append(newChargeNode)
         newChargeNode.name = "\(ChargeCategoryName)\(charges.count)"
         newChargeNode.zPosition = 1
+        newChargeNode.setScale(chargeTextureScale)
         
-        let newCharge = SKPhysicsBody(circleOfRadius: newChargeNode.texture!.size().width/2)
+        let newCharge = SKPhysicsBody(circleOfRadius:
+            chargeTextureScale * newChargeNode.texture!.size().width/2)
         newCharge.isDynamic = true
         newCharge.allowsRotation = false
         newCharge.friction = 0
@@ -142,6 +156,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             charge.removeFromParent()
         }
         running = false
+        
+        gameOverLabel.isHidden = true
+        gameOverTextLabel.isHidden = true
     }
     
     func addCharge(_ chargeType: String) {
@@ -161,6 +178,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let touchLocation = touch!.location(in: self)
         
         if let scene = self.scene {
+            if  !gameOverLabel.isHidden {
+                resetPhysicsSimulation()
+            }
+            
             let viewTouchLocation = touch?.location(in: self.view)
             let sceneTouchPoint = scene.convertPoint(fromView: viewTouchLocation!)
             let touchedNodes = scene.nodes(at: sceneTouchPoint)
@@ -183,7 +204,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     addCharge(NegativeChargeCategoryName)
                     
                 } else if let n = node.name {
-                    if n.contains(StaticChargeCategoryName) {
+                    if n.contains(ChargeCategoryName) {
                         isFingerOnCharge = true
                         whichCharge = node.name!
                     }
